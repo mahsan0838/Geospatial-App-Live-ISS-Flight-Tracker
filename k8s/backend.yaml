@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iss-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iss-backend
+  template:
+    metadata:
+      labels:
+        app: iss-backend
+    spec:
+      containers:
+      - name: backend
+        image: 22i0838/iss-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: iss-backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

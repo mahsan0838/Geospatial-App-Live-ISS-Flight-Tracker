@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iss-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iss-frontend
+  template:
+    metadata:
+      labels:
+        app: iss-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 22i0838/iss-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: iss-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

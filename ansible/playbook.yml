@@ -1,0 +1,42 @@
+---
+- name: Configure EC2 & Initialize Lightweight Kubernetes (k3s)
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create 2GB Swap Space (Prevents out-of-memory crashes on t2.micro)
+      command: fallocate -l 2G /swapfile
+      args:
+        creates: /swapfile
+
+    - name: Set Swap permissions
+      file:
+        path: /swapfile
+        mode: '0600'
+
+    - name: Make Swap
+      command: mkswap /swapfile
+      ignore_errors: yes
+
+    - name: Enable Swap
+      command: swapon /swapfile
+      ignore_errors: yes
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install k3s (Ultra-lightweight Kubernetes)
+      shell: curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+      args:
+        creates: /usr/local/bin/k3s
