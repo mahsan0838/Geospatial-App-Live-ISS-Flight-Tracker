@@ -17,7 +17,7 @@ spec:
         image: 22i0838/iss-backend:8585215c8d50f5a6ae56e3c932e4a2dbd2fa12c1
         imagePullPolicy: Always
         ports:
-        - containerPort: 5000
+        - containerPort: 8000
 ---
 apiVersion: v1
 kind: Service
