@@ -51,3 +51,12 @@ jobs:
           git add k8s/backend.yaml k8s/frontend.yaml
           git diff --staged --quiet || git commit -m "Update image tags to commit ${{ github.sha }}"
           git push
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./iss-tracker/backend
+          push: true
+          tags: 22i0838/iss-backend:${{ github.sha }}
+          build-args: |
+            OPENSKY_USERNAME=${{ secrets.OPENSKY_USERNAME }}
+            OPENSKY_PASSWORD=${{ secrets.OPENSKY_PASSWORD }}

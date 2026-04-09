@@ -1,6 +1,7 @@
 import requests, redis, json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -26,10 +27,16 @@ def get_flights():
         return json.loads(cached)
     
     try:
-        # Use anonymous access (no auth) - limits 100/day
-        url = "https://opensky-network.org/api/states/all"
+        username = os.environ.get("OPENSKY_USERNAME")
+        password = os.environ.get("OPENSKY_PASSWORD")
+        
+        if not username or not password:
+            return []  # No credentials, skip flights
+            
+        url = f"https://{username}:{password}@opensky-network.org/api/states/all"
         params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}
-        res = requests.get(url, params=params, timeout=5)
+        
+        res = requests.get(url, params=params, timeout=10)
         
         if res.status_code != 200:
             return []
@@ -45,7 +52,6 @@ def get_flights():
                     "velocity": state[9] or 0
                 })
         
-        # Cache for 60 seconds (reduces API calls)
         r.setex("flights", 60, json.dumps(flights))
         return flights
     except Exception as e:
