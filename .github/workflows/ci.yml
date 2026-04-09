@@ -37,8 +37,9 @@ jobs:
 
       - name: Update Kubernetes Manifests
         run: |
-          sed -i "s|image: 22i0838/iss-backend:.*|image: 22i0838/iss-backend:${{ github.sha }}|g" k8s/backend.yaml
-          sed -i "s|image: 22i0838/iss-frontend:.*|image: 22i0838/iss-frontend:${{ github.sha }}|g" k8s/frontend.yaml
+          # Remove 'g' flag and be more precise with sed
+          sed -i "s|image: 22i0838/iss-backend:.*|image: 22i0838/iss-backend:${{ github.sha }}|" k8s/backend.yaml
+          sed -i "s|image: 22i0838/iss-frontend:.*|image: 22i0838/iss-frontend:${{ github.sha }}|" k8s/frontend.yaml
           
           echo "Backend image after update:"
           grep "image:" k8s/backend.yaml
