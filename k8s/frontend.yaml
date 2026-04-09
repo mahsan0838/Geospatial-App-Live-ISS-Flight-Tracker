@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 22i0838/iss-frontend:5fd3fdc5b285f4c85738d2b063faa2ecce3d51ac
+        image: 22i0838/iss-frontend:83211f2f8a212f1cb26bf90f55df56bc1f6a81ae
         imagePullPolicy: Always
         ports:
         - containerPort: 80
