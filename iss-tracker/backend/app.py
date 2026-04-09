@@ -25,21 +25,28 @@ def get_flights():
     if cached:
         return json.loads(cached)
     
-    # Get flights over USA (bounding box)
-    url = "https://opensky-network.org/api/states/all"
-    params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}  # Continental US
-    res = requests.get(url, params=params).json()
-    
-    flights = []
-    for state in res.get("states", [])[:20]:  # Limit to 20 flights
-        if state[5] and state[6]:  # Check if lat/lon exist
-            flights.append({
-                "callsign": state[1].strip(),
-                "lat": state[6],
-                "lon": state[5],
-                "altitude": state[7],
-                "velocity": state[9]
-            })
-    
-    r.setex("flights", 10, json.dumps(flights))  # Cache for 10 seconds
-    return flights
+    try:
+        # Get flights over USA (bounding box)
+        url = "https://opensky-network.org/api/states/all"
+        params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}
+        res = requests.get(url, params=params, timeout=5)
+        
+        if res.status_code != 200:
+            return []
+            
+        flights = []
+        for state in res.json().get("states", [])[:20]:
+            if state[5] and state[6]:  # Check if lat/lon exist
+                flights.append({
+                    "callsign": state[1].strip(),
+                    "lat": state[6],
+                    "lon": state[5],
+                    "altitude": state[7],
+                    "velocity": state[9]
+                })
+        
+        r.setex("flights", 10, json.dumps(flights))
+        return flights
+    except Exception as e:
+        print(f"Flight API error: {e}")
+        return []  # Return empty list instead of crashing
