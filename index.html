@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Live ISS & Flight Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-family: Arial;
+            font-size: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body style="margin: 0;">
+    <div id="map"></div>
+    <div class="legend">
+         🛰️ ISS | ✈️ Flights (World)
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([39, -98], 4);  // Center on US
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // ISS marker (red dot)
+        var issMarker = L.marker([0, 0], { icon: L.divIcon({ html: '🛰️', className: 'iss-icon', iconSize: [20, 20] }) }).addTo(map);
+
+        // Flight markers (store to update/remove)
+        var flightMarkers = new Map();
+
+        // Plane icon
+        var planeIcon = L.divIcon({
+            html: '✈️',
+            className: 'plane-icon',
+            iconSize: [20, 20]
+        });
+
+        // Fetch ISS location
+        setInterval(async () => {
+            try {
+                const res = await fetch('http://98.81.157.252:31506/api/iss');
+                const data = await res.json();
+                issMarker.setLatLng([data.lat, data.lon]);
+            } catch (e) { console.error('ISS error:', e); }
+        }, 2000);
+
+        // Fetch flights
+        setInterval(async () => {
+            try {
+                const res = await fetch('http://98.81.157.252:31506/api/flights');
+                const flights = await res.json();
+
+                // Update flight markers
+                flights.forEach(flight => {
+                    if (flightMarkers.has(flight.callsign)) {
+                        flightMarkers.get(flight.callsign).setLatLng([flight.lat, flight.lon]);
+                    } else {
+                        var marker = L.marker([flight.lat, flight.lon], { icon: planeIcon })
+                            .bindPopup(`${flight.callsign}<br>Alt: ${flight.altitude}ft<br>Speed: ${flight.velocity} knots`)
+                            .addTo(map);
+                        flightMarkers.set(flight.callsign, marker);
+                    }
+                });
+
+                // Remove flights that disappeared
+                const currentCallsigns = new Set(flights.map(f => f.callsign));
+                for (let [callsign, marker] of flightMarkers) {
+                    if (!currentCallsigns.has(callsign)) {
+                        map.removeLayer(marker);
+                        flightMarkers.delete(callsign);
+                    }
+                }
+            } catch (e) { console.error('Flights error:', e); }
+        }, 10000);  // Update every 10 seconds
+    </script>
+</body>
+
+</html>
