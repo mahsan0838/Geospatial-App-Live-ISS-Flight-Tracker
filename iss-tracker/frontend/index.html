@@ -52,7 +52,7 @@
         // Fetch ISS location
         setInterval(async () => {
             try {
-                const res = await fetch('http://54.210.240.179:30718/api/iss');
+                const res = await fetch('http://98.81.157.252:31506/api/iss');
                 const data = await res.json();
                 issMarker.setLatLng([data.lat, data.lon]);
             } catch (e) { console.error('ISS error:', e); }
@@ -61,7 +61,7 @@
         // Fetch flights
         setInterval(async () => {
             try {
-                const res = await fetch('http://54.210.240.179:30718/api/flights');
+                const res = await fetch('http://98.81.157.252:31506/api/flights');
                 const flights = await res.json();
 
                 // Update flight markers
