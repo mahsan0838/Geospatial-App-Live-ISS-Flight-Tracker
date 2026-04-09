@@ -21,32 +21,35 @@ def get_iss():
 
 @app.get("/api/flights")
 def get_flights():
+    # Return cached data immediately if available
     cached = r.get("flights")
     if cached:
         return json.loads(cached)
     
+    # Return empty array while fetching in background
+    # (for simplicity, we'll just try with short timeout)
     try:
-        # Get flights over USA (bounding box)
         url = "https://opensky-network.org/api/states/all"
         params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}
-        res = requests.get(url, params=params, timeout=5)
+        # Short timeout to prevent hanging
+        res = requests.get(url, params=params, timeout=3)
         
         if res.status_code != 200:
             return []
             
         flights = []
         for state in res.json().get("states", [])[:20]:
-            if state[5] and state[6]:  # Check if lat/lon exist
+            if state[5] and state[6] and state[1]:
                 flights.append({
                     "callsign": state[1].strip(),
                     "lat": state[6],
                     "lon": state[5],
-                    "altitude": state[7],
-                    "velocity": state[9]
+                    "altitude": state[7] or 0,
+                    "velocity": state[9] or 0
                 })
         
-        r.setex("flights", 10, json.dumps(flights))
+        r.setex("flights", 15, json.dumps(flights))
         return flights
     except Exception as e:
         print(f"Flight API error: {e}")
-        return []  # Return empty list instead of crashing
+        return []
