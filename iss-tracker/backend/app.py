@@ -19,37 +19,37 @@ def get_iss():
     r.setex("iss_loc", 2, json.dumps(loc))
     return loc
 
-@app.get("/api/flights")
-def get_flights():
-    # Return cached data immediately if available
-    cached = r.get("flights")
-    if cached:
-        return json.loads(cached)
+# @app.get("/api/flights")
+# def get_flights():
+#     # Return cached data immediately if available
+#     cached = r.get("flights")
+#     if cached:
+#         return json.loads(cached)
     
-    # Return empty array while fetching in background
-    # (for simplicity, we'll just try with short timeout)
-    try:
-        url = "https://opensky-network.org/api/states/all"
-        params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}
-        # Short timeout to prevent hanging
-        res = requests.get(url, params=params, timeout=3)
+#     # Return empty array while fetching in background
+#     # (for simplicity, we'll just try with short timeout)
+#     try:
+#         url = "https://opensky-network.org/api/states/all"
+#         params = {"lamin": 24, "lomin": -125, "lamax": 49, "lomax": -65}
+#         # Short timeout to prevent hanging
+#         res = requests.get(url, params=params, timeout=3)
         
-        if res.status_code != 200:
-            return []
+#         if res.status_code != 200:
+#             return []
             
-        flights = []
-        for state in res.json().get("states", [])[:20]:
-            if state[5] and state[6] and state[1]:
-                flights.append({
-                    "callsign": state[1].strip(),
-                    "lat": state[6],
-                    "lon": state[5],
-                    "altitude": state[7] or 0,
-                    "velocity": state[9] or 0
-                })
+#         flights = []
+#         for state in res.json().get("states", [])[:20]:
+#             if state[5] and state[6] and state[1]:
+#                 flights.append({
+#                     "callsign": state[1].strip(),
+#                     "lat": state[6],
+#                     "lon": state[5],
+#                     "altitude": state[7] or 0,
+#                     "velocity": state[9] or 0
+#                 })
         
-        r.setex("flights", 15, json.dumps(flights))
-        return flights
-    except Exception as e:
-        print(f"Flight API error: {e}")
-        return []
+#         r.setex("flights", 15, json.dumps(flights))
+#         return flights
+#     except Exception as e:
+#         print(f"Flight API error: {e}")
+#         return []
