@@ -24,7 +24,7 @@
         // Fetch location from our Python backend
         setInterval(async () => {
             // We will configure '/api/iss' to route to the backend in Kubernetes
-            const res = await fetch('/api/iss');
+            const res = await fetch('http://54.210.240.179:30718/api/iss');
             const data = await res.json();
             marker.setLatLng([data.lat, data.lon]);
             map.panTo([data.lat, data.lon]);
