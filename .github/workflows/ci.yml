@@ -24,6 +24,9 @@ jobs:
           context: ./iss-tracker/backend
           push: true
           tags: 22i0838/iss-backend:${{ github.sha }}
+          build-args: |
+            OPENSKY_USERNAME=${{ secrets.OPENSKY_USERNAME }}
+            OPENSKY_PASSWORD=${{ secrets.OPENSKY_PASSWORD }}
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v4
@@ -34,11 +37,9 @@ jobs:
 
       - name: Update Kubernetes Manifests
         run: |
-          # More robust sed pattern that handles spaces and exact matches
           sed -i "s|image: 22i0838/iss-backend:.*|image: 22i0838/iss-backend:${{ github.sha }}|g" k8s/backend.yaml
           sed -i "s|image: 22i0838/iss-frontend:.*|image: 22i0838/iss-frontend:${{ github.sha }}|g" k8s/frontend.yaml
           
-          # Verify the change
           echo "Backend image after update:"
           grep "image:" k8s/backend.yaml
           echo "Frontend image after update:"
@@ -51,12 +52,3 @@ jobs:
           git add k8s/backend.yaml k8s/frontend.yaml
           git diff --staged --quiet || git commit -m "Update image tags to commit ${{ github.sha }}"
           git push
-      - name: Build and Push Backend Image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./iss-tracker/backend
-          push: true
-          tags: 22i0838/iss-backend:${{ github.sha }}
-          build-args: |
-            OPENSKY_USERNAME=${{ secrets.OPENSKY_USERNAME }}
-            OPENSKY_PASSWORD=${{ secrets.OPENSKY_PASSWORD }}
