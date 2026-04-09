@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 22i0838/iss-backend:15e5ed934cf17b28c484e32157b5b40a1e354165
+        image: 22i0838/iss-backend:bc68ad79bb538a04727ab923a11d86e05888de38
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
